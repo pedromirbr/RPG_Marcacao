@@ -1,11 +1,61 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- */
+import React, { useState } from 'react';
+import { View, Text, TextInput, Button } from 'react-native';
+import { Button as ElementButton } from 'react-native-elements';
+import axios from 'axios';
 
-import React from 'react';
+const LoginScreen = () => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [name, setName] = useState(''); // Para cadastro
+
+  const handleLogin = async () => {
+    try {
+      const response = await axios.post('http://localhost:3000/login', { email, password });
+      // Handle login success
+      console.log(response.data);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const handleRegister = async () => {
+    try {
+      const response = await axios.post('http://localhost:3000/register', { name, email, password });
+      // Handle registration success
+      console.log(response.data);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  return (
+    <View>
+      <TextInput
+        placeholder="Email"
+        value={email}
+        onChangeText={setEmail}   
+
+      />
+      <TextInput
+        placeholder="Senha"
+        secureTextEntry
+        value={password}
+        onChangeText={setPassword}
+      />
+      <ElementButton title="Login" onPress={handleLogin} />
+      <TextInput
+        placeholder="Nome"
+        value={name}
+        onChangeText={setName}
+      />
+      <ElementButton title="Cadastrar" onPress={handleRegister} />
+    </View>
+  );
+};
+
+export default LoginScreen;
+
+/*import React from 'react';
 import type {PropsWithChildren} from 'react';
 import {
   SafeAreaView,
@@ -115,4 +165,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default App;
+export default App;*/
