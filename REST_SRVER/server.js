@@ -1,72 +1,85 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-const bodyParser = require('body-parser');
-const bcrypt = require('bcrypt'); // For password hashing
-const app = express();
-const port = 3000;
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+const dotenv = require('dotenv');
 
-// Connect to MongoDB (replace with your connection string)
-mongoose.connect('mongodb://localhost/meu-app');
+dotenv.config();
+
+const app = express();
+const port = process.env.PORT || 3000;
 
 // Middleware
 app.use(cors());
-app.use(bodyParser.json());
+app.use(express.json());
 
-// Define the user schema
+// Connect to MongoDB
+mongoose.connect(process.env.MONGODB_URI)
+.then(() => console.log('Connected to MongoDB'))
+.catch(err => console.error('Could not connect to MongoDB', err));
+
+// User Schema
 const userSchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  email: { type: String, required: true, unique: true },
+  name: { type: String, required: true, trim: true },
+  email: { type: String, required: true, unique: true, trim: true, lowercase: true },
   password: { type: String, required: true }
 });
 
-const User = mongoose.model('User ', userSchema);
+const User = mongoose.model('User', userSchema);
 
-// Route for user registration
-app.post('/register', async (req, res) => {
+// Helper function to generate JWT
+const generateToken = (userId) => {
+  return jwt.sign({ id: userId }, process.env.JWT_SECRET, { expiresIn: '1h' });
+};
+
+// Middleware for error handling
+const asyncHandler = fn => (req, res, next) =>
+  Promise.resolve(fn(req, res, next)).catch(next);
+
+// Routes
+app.post('/register', asyncHandler(async (req, res) => {
   const { name, email, password } = req.body;
 
-  // Check if the user already exists
-  const existingUser  = await User.findOne({ email });
-  if (existingUser ) {
-    return res.status(400).json({ message: 'Usuário já cadastrado' });
+  const existingUser = await User.findOne({ email });
+  if (existingUser) {
+    return res.status(400).json({ message: 'User already exists' });
   }
 
-  // Hash the password before saving
-  const hashedPassword = await bcrypt.hash(password, 10);
+  const salt = await bcrypt.genSalt(10);
+  const hashedPassword = await bcrypt.hash(password, salt);
+
   const user = new User({ name, email, password: hashedPassword });
+  await user.save();
 
-  try {
-    await user.save();
-    res.status(201).json({ message: 'Usuário cadastrado com sucesso' });
-  } catch (error) {
-    res.status(500).json({ message: 'Erro ao cadastrar usuário', error });
-  }
-});
+  const token = generateToken(user._id);
+  res.status(201).json({ message: 'User registered successfully', token });
+}));
 
-// Route for user login
-app.post('/login', async (req, res) => {
+app.post('/login', asyncHandler(async (req, res) => {
   const { email, password } = req.body;
 
-  try {
-    const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(400).json({ message: 'Usuário não encontrado' });
-    }
-
-    // Compare the hashed password
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res.status(401).json({ message: 'Senha incorreta' });
-    }
-
-    res.status(200).json({ message: 'Login bem-sucedido' });
-  } catch (error) {
-    res.status(500).json({ message: 'Erro ao fazer login', error });
+  const user = await User.findOne({ email });
+  if (!user) {
+    return res.status(400).json({ message: 'Invalid credentials' });
   }
+
+  const isMatch = await bcrypt.compare(password, user.password);
+  if (!isMatch) {
+    return res.status(400).json({ message: 'Invalid credentials' });
+  }
+
+  const token = generateToken(user._id);
+  res.json({ message: 'Login successful', token });
+}));
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ message: 'Something went wrong' });
 });
 
 // Start the server
 app.listen(port, () => {
-  console.log(`Servidor rodando na porta ${port}`);
+  console.log(`Server running on port ${port}`);
 });
