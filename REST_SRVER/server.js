@@ -73,7 +73,84 @@ app.post('/login', asyncHandler(async (req, res) => {
   }
 
   const token = generateToken(user._id);
-  res.json({ message: 'Login successful', token });
+  
+  res.json({ 
+    message: 'Login successful', 
+    token,
+    nome: user.nome,
+    email: user.email,
+    apelido: user.apelido,
+    telefone: user.telefone
+  });
+}));
+
+
+// Middleware de autenticação
+const authMiddleware = async (req, res, next) => {
+  try {
+    // Verifica se o token está presente no header
+    const token = req.header('Authorization')?.replace('Bearer ', '');
+    
+    if (!token) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+
+    // Verifica se o token é válido
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    
+    // Busca o usuário no banco
+    const user = await User.findById(decoded.id);
+    
+    if (!user) {
+      return res.status(401).json({ message: 'User not found' });
+    }
+
+    // Adiciona o usuário à requisição
+    req.user = user;
+    next();
+  } catch (error) {
+    res.status(401).json({ message: 'Invalid token' });
+  }
+};
+
+// Rota protegida para listar todos os usuários
+app.get('/users/list', authMiddleware, asyncHandler(async (req, res) => {
+  try {
+    // Parâmetros de paginação e ordenação (opcionais)
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const sortField = req.query.sort || 'nome';
+    const sortOrder = req.query.order === 'desc' ? -1 : 1;
+
+    // Calcula o número de documentos a pular
+    const skip = (page - 1) * limit;
+
+    // Conta total de usuários
+    const total = await User.countDocuments();
+
+    // Busca usuários com paginação e ordenação
+    const users = await User.find({}, '-senha')
+      .sort({ [sortField]: sortOrder })
+      .skip(skip)
+      .limit(limit);
+
+    // Retorna os resultados com metadados
+    res.json({
+      users,
+      pagination: {
+        currentPage: page,
+        totalPages: Math.ceil(total / limit),
+        totalUsers: total,
+        usersPerPage: limit
+      }
+    });
+
+  } catch (error) {
+    res.status(500).json({ 
+      message: 'Error fetching users', 
+      error: error.message 
+    });
+  }
 }));
 
 // Error handling middleware

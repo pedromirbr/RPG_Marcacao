@@ -1,16 +1,30 @@
-
-import React, { useState } from 'react';
-import { View, Text, TextInput, Button, StyleSheet, ImageBackground  } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TextInput, Button, StyleSheet, ImageBackground } from 'react-native';
 import axios from 'axios';
+import HomeScreen from './components/HomeScreen'; // Correct import statement
+import LoginScreen from './components/LoginScreen';
+import CadastroScreen from './components/CadastroScreen';
+import UserDashboard from './components/UserDashboard';
 
-const WebServerURLRegistro = "http://10.0.2.2:3000/register"
-const WebServerURLLogin = "http://10.0.2.2:3000/login"
+const WebServerURLRegistro = "http://10.0.2.2:3000/register";
+const WebServerURLLogin = "http://10.0.2.2:3000/login";
 
 const App = () => {
   const [currentScreen, setCurrentScreen] = useState('Home');
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userData, setUserData] = useState(null);
 
-  const handleNavigate = (screen) => {
+  const handleNavigate = (screen, data = null) => {
     setCurrentScreen(screen);
+    if (data) {
+      setUserData(data);
+    }
+  };
+
+  const handleLogout = () => {
+    setIsLoggedIn(false);
+    setUserData(null);
+    setCurrentScreen('Home');
   };
 
   const renderScreen = () => {
@@ -18,9 +32,15 @@ const App = () => {
       case 'Home':
         return <HomeScreen onNavigate={handleNavigate} />;
       case 'Login':
-        return <LoginScreen onNavigate={handleNavigate} />;
+        return <LoginScreen onNavigate={handleNavigate} setIsLoggedIn={setIsLoggedIn} />;
       case 'Cadastro':
         return <CadastroScreen onNavigate={handleNavigate} />;
+      case 'UserDashboard':
+        return isLoggedIn ? (
+          <UserDashboard onLogout={handleLogout} userData={userData} />
+        ) : (
+          <HomeScreen onNavigate={handleNavigate} />
+        );
       default:
         return <HomeScreen onNavigate={handleNavigate} />;
     }
@@ -29,132 +49,10 @@ const App = () => {
   return <View style={styles.container}>{renderScreen()}</View>;
 };
 
-const HomeScreen = ({ onNavigate }) => (
-  <ImageBackground
-    source={require('./assets/Background.jpg')}
-    style={styles.background}
-    imageStyle={styles.image}
-    resizeMode="cover"
-  >
-    <View style={styles.container}>
-      <Text style={styles.title}>Bem-vindo ao Mundo da Fantasia!</Text>
-      <View style={styles.buttonContainer}>
-        <Button title="Login" onPress={() => onNavigate('Login')} />
-        <Button title="Cadastro" onPress={() => onNavigate('Cadastro')} />
-      </View>
-    </View>
-  </ImageBackground>
-);
-
-
-const LoginScreen = ({ onNavigate }) => {
-  const [email, setEmail] = useState('');
-  const [senha, setSenha] = useState('');
-  const [errorMessage, setErrorMessage] = useState('');
-
-  const handleLogin = async () => {
-    try {
-      const response = await axios.post(WebServerURLLogin, { email, senha });
-      // Handle successful login (e.g., navigate to another screen or show a success message)
-      console.log("Login successful:", response.data);
-      onNavigate('Home'); // Navigate back to Home after successful login
-    } catch (error) {
-      console.error("Login failed:", error);
-      setErrorMessage("Login failed. Please check your credentials.");
-    }
-  };
-
-  return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Login</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Email"
-        value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Senha"
-        value={senha}
-        onChangeText={setSenha}
-        secureTextEntry
-      />
-      {errorMessage ? <Text style={styles.error}>{errorMessage}</Text> : null}
-      <Button title="Login" onPress={handleLogin} />
-      <Button title="Back to Home" onPress={() => onNavigate('Home')} />
-    </View>
-  );
-};
-
-// Placeholder for CadastroScreen
-const CadastroScreen = (onNavigate) => {
-  const [nome, setNome] = useState('');
-  const [apelido, setApelido] = useState('');
-  const [email, setEmail] = useState('');
-  const [telefone, setTelefone] = useState('');
-  const [senha, setSenha] = useState('');
-
-  const handleCadastro = async () => {
-    // Lógica para enviar os dados para o servidor
-    try {
-      const response = await axios.post(WebServerURLRegistro, {
-        nome,
-        apelido,
-        email,
-        telefone,
-        senha,
-      });
-      console.log('Usuário cadastrado com sucesso:', response.data);
-    } catch (error) {
-      console.error('Erro ao cadastrar usuário:', error);
-    }
-  };
-
-  return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Cadastro</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="nome"
-        value={nome}
-        onChangeText={setNome}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="apelido"
-        value={apelido}
-        onChangeText={setApelido}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="email"
-        value={email}
-        onChangeText={setEmail}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="telefone"
-        value={telefone}
-        onChangeText={setTelefone}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="senha"
-        value={senha}
-        onChangeText={setSenha}
-      />      
-      <Button title="Cadastrar" onPress={handleCadastro} />
-      <Button title="Back to Home" onPress={() => onNavigate('Home')} />      
-    </View>
-  );
-};
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'space-between', // Distribui o espaço entre os elementos
+    justifyContent: 'space-between',
     padding: 20,
   },
   title: {
@@ -177,17 +75,41 @@ const styles = StyleSheet.create({
   background: {
     flex: 1,
     justifyContent: 'center',
-     width: '100%',
+    width: '100%',
   },
   image: {
-    opacity: 0.5, // Define a transparência da imagem de fundo
+    opacity: 0.5,
   },
   buttonContainer: {
     position: 'absolute',
-    bottom: 20,
+    bottom: 10,
     left: 0,
     right: 0,
-    alignItems: 'center', // Centraliza os botões
+    alignItems: 'center',
+    padding: 20,
+    gap: 10,
+  },
+  header: {
+    width: '100%',
+    padding: 15,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    marginBottom: 20,
+  },
+  welcomeText: {
+    fontSize: 20,
+    color: 'white',
+    textAlign: 'center',
+    fontWeight: 'bold',
+  },
+  mainContent: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: '100%',
+  },
+  button: {
+    width: '80%',
+    marginVertical: 10,
   },
 });
 
