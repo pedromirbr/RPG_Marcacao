@@ -14,6 +14,7 @@ const port = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
+console.log(process.env.MONGODB_URI);
 // Connect to MongoDB
 mongoose.connect(process.env.MONGODB_URI)
 .then(() => console.log('Connected to MongoDB'))
@@ -21,9 +22,11 @@ mongoose.connect(process.env.MONGODB_URI)
 
 // User Schema
 const userSchema = new mongoose.Schema({
-  name: { type: String, required: true, trim: true },
+  nome: { type: String, required: true, trim: true },
   email: { type: String, required: true, unique: true, trim: true, lowercase: true },
-  password: { type: String, required: true }
+  apelido: { type: String, required: true, trim: true },
+  telefone: { type: String, required: true, trim: true },
+  senha: { type: String, required: true }
 });
 
 const User = mongoose.model('User', userSchema);
@@ -39,7 +42,7 @@ const asyncHandler = fn => (req, res, next) =>
 
 // Routes
 app.post('/register', asyncHandler(async (req, res) => {
-  const { name, email, password } = req.body;
+  const { nome, email, apelido, telefone, senha } = req.body;
 
   const existingUser = await User.findOne({ email });
   if (existingUser) {
@@ -47,9 +50,9 @@ app.post('/register', asyncHandler(async (req, res) => {
   }
 
   const salt = await bcrypt.genSalt(10);
-  const hashedPassword = await bcrypt.hash(password, salt);
+  const hashedPassword = await bcrypt.hash(senha, salt);
 
-  const user = new User({ name, email, password: hashedPassword });
+  const user = new User({ nome, email, apelido, telefone, senha: hashedPassword });
   await user.save();
 
   const token = generateToken(user._id);
@@ -57,14 +60,14 @@ app.post('/register', asyncHandler(async (req, res) => {
 }));
 
 app.post('/login', asyncHandler(async (req, res) => {
-  const { email, password } = req.body;
+  const { email, senha } = req.body;
 
   const user = await User.findOne({ email });
   if (!user) {
     return res.status(400).json({ message: 'Invalid credentials' });
   }
 
-  const isMatch = await bcrypt.compare(password, user.password);
+  const isMatch = await bcrypt.compare(senha, user.senha);
   if (!isMatch) {
     return res.status(400).json({ message: 'Invalid credentials' });
   }
