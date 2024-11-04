@@ -1,21 +1,33 @@
 import React from 'react';
-import { View, Text, Button, ImageBackground, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, ImageBackground, StyleSheet } from 'react-native';
 
 const HomeScreen = ({ onNavigate }) => (
   <ImageBackground
     source={require('../assets/Background.jpg')}
     style={styles.background}
-    imageStyle={styles.image}
-    resizeMode="contain" // Alterado para "contain" para preencher a tela
+    resizeMode="cover"
   >
-    <View style={styles.container}>
-      <Text style={styles.title}>Bem-vindo ao Mundo da Fantasia!</Text>
-      <View style={styles.buttonContainer}>
-        <View style={styles.button}>
-          <Button title="Login" onPress={() => onNavigate('Login')} />
-        </View>
-        <View style={styles.button}>
-          <Button title="Cadastro" onPress={() => onNavigate('Cadastro')} />
+    <View style={styles.overlay}>
+      <View style={styles.container}>
+        <Text style={styles.title}>Bem-vindo ao Mundo da Fantasia!</Text>
+        <Text style={styles.subtitle}>Encontre seu grupo de RPG ideal</Text>
+        
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={() => onNavigate('Login')}
+          >
+            <Text style={styles.buttonText}>Entrar</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.button, styles.buttonSecondary]}
+            onPress={() => onNavigate('Cadastro')}
+          >
+            <Text style={[styles.buttonText, styles.buttonTextSecondary]}>
+              Criar nova conta
+            </Text>
+          </TouchableOpacity>
         </View>
       </View>
     </View>
@@ -25,31 +37,61 @@ const HomeScreen = ({ onNavigate }) => (
 const styles = StyleSheet.create({
   background: {
     flex: 1,
-    justifyContent: 'space-between', // Distribui o espaço entre o título e os botões
+    width: '100%',
+    height: '100%',
+  },
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)', // Adiciona um overlay escuro para melhor legibilidade
   },
   container: {
     flex: 1,
-    justifyContent: 'flex-start', // Alinha o título na parte superior
-    padding: 20, // Adiciona um pouco de padding
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
   },
   title: {
-    fontSize: 24,
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
     textAlign: 'center',
-    marginBottom: 20,
-    color: 'black', // Muda a cor do texto para preto
+    marginBottom: 10,
+    textShadowColor: 'rgba(0, 0, 0, 0.75)',
+    textShadowOffset: { width: -1, height: 1 },
+    textShadowRadius: 10,
+  },
+  subtitle: {
+    fontSize: 18,
+    color: '#FFFFFF',
+    textAlign: 'center',
+    marginBottom: 40,
+    textShadowColor: 'rgba(0, 0, 0, 0.75)',
+    textShadowOffset: { width: -1, height: 1 },
+    textShadowRadius: 10,
   },
   buttonContainer: {
-    padding: 20,
     width: '100%',
-    flex: 1,
-    justifyContent:'flex-end',
+    maxWidth: 300,
+    gap: 15,
   },
   button: {
-    marginVertical: 10, // Espaçamento vertical entre os botões
-    borderRadius: 5, // Bordas arredondadas
-    overflow: 'hidden', // Para que as bordas arredondadas sejam aplicadas
+    backgroundColor: '#007AFF',
+    padding: 15,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginVertical: 8,
     width: '100%',
-    marginBottom: 0,
+  },
+  buttonSecondary: {
+    backgroundColor: '#34C759',
+  },
+  buttonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  buttonTextSecondary: {
+    color: '#FFFFFF',
   },
 });
 

@@ -1,85 +1,136 @@
-import React from 'react';
-import { View, Text, Button, ImageBackground, StyleSheet } from 'react-native';
+// UserDashboard.js
+import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  SafeAreaView,
+  Image
+} from 'react-native';
+import PlayerMatchModal from './PlayerMatchModal';
+import MatchesModal from './MatchesModal';
 
 const UserDashboard = ({ onLogout, userData }) => {
-  const handleSearchPlayer = () => {
-    console.log('Procurando jogadores...');
-  };
+  const [isPlayerMatchModalVisible, setIsPlayerMatchModalVisible] = useState(false);
+  const [isMatchesModalVisible, setIsMatchesModalVisible] = useState(false);
 
   return (
-    <ImageBackground
-      source={require('../assets/Background.jpg')}
-      style={styles.background}
-      imageStyle={styles.image}
-      resizeMode="cover"
-    >
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <Text style={styles.welcomeText}>Bem-vindo, {userData?.apelido || 'Jogador'}!</Text>
-        </View>
+    <SafeAreaView style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.welcomeText}>Bem-vindo(a), {userData.nome}!</Text>
+      </View>
 
-        <View style={styles.mainContent}>
-          <View style={styles.button}>
-            <Button 
-              title="Procurar Jogadores" 
-              onPress={handleSearchPlayer}
-              color="#4CAF50" // cor verde
-            />
-          </View>
+      <View style={styles.content}>
+        <View style={styles.profileInfo}>
+          <Text style={styles.infoText}>Email: {userData.email}</Text>
+          <Text style={styles.infoText}>Apelido: {userData.apelido}</Text>
+          <Text style={styles.infoText}>Tipo: {userData.tipo}</Text>
         </View>
 
         <View style={styles.buttonContainer}>
-          <View style={styles.button}>
-            <Button 
-              title="Logout" 
-              onPress={onLogout} 
-              color="#ff0000" 
-            />
-          </View>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={() => setIsPlayerMatchModalVisible(true)}
+          >
+            <Text style={styles.buttonText}>Procurar Jogadores</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.button}
+            onPress={() => setIsMatchesModalVisible(true)}
+          >
+            <Text style={styles.buttonText}>Meus Matches</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.button, styles.logoutButton]}
+            onPress={onLogout}
+          >
+            <Text style={styles.buttonText}>Sair</Text>
+          </TouchableOpacity>
         </View>
       </View>
-    </ImageBackground>
+
+      <PlayerMatchModal
+        visible={isPlayerMatchModalVisible}
+        onClose={() => setIsPlayerMatchModalVisible(false)}
+        userToken={userData.token}
+      />
+
+      <MatchesModal
+        visible={isMatchesModalVisible}
+        onClose={() => setIsMatchesModalVisible(false)}
+        userToken={userData.token}
+        userData={userData}
+      />
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  background: {
-    flex: 1,
-    justifyContent: 'center',
-    width: '100%',
+    backgroundColor: '#f5f5f5',
   },
   header: {
-    width: '100%',
-    padding: 15,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    marginBottom: 20,
+    padding: 20,
+    backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#ddd',
   },
   welcomeText: {
-    fontSize: 20,
-    color: 'white',
-    textAlign: 'center',
+    fontSize: 24,
     fontWeight: 'bold',
+    color: '#333',
   },
-  mainContent: {
+  content: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    width: '100%',
+    padding: 20,
+  },
+  profileInfo: {
+    backgroundColor: '#fff',
+    padding: 20,
+    borderRadius: 10,
+    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  infoText: {
+    fontSize: 16,
+    color: '#333',
+    marginBottom: 10,
   },
   buttonContainer: {
-    marginTop: 20,
-    width: '100%',
-    alignItems: 'center',
+    gap: 15,
   },
   button: {
-    width: '80%', // Faz o botão ocupar 80% da largura do container
-    marginVertical: 10,
+    backgroundColor: '#007AFF',
+    padding: 15,
+    borderRadius: 10,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  logoutButton: {
+    backgroundColor: '#FF3B30',
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
 

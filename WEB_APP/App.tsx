@@ -1,20 +1,29 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, Button, StyleSheet, ImageBackground } from 'react-native';
-import axios from 'axios';
-import HomeScreen from './components/HomeScreen'; // Correct import statement
+import React, { useState } from 'react';
+import { View, StyleSheet } from 'react-native';
+import HomeScreen from './components/HomeScreen';
 import LoginScreen from './components/LoginScreen';
 import CadastroScreen from './components/CadastroScreen';
 import UserDashboard from './components/UserDashboard';
 
-const WebServerURLRegistro = "http://10.0.2.2:3000/register";
-const WebServerURLLogin = "http://10.0.2.2:3000/login";
+
+interface UserData {
+  nome: string;
+  email: string;
+  apelido: string;
+  telefone: string;
+  tipo: 'Jogador' | 'Mestre';
+  descricao?: string;
+  sistemas_preferidos?: string[];
+  data_criacao: Date;
+  ultima_atualizacao: Date;
+}
 
 const App = () => {
   const [currentScreen, setCurrentScreen] = useState('Home');
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userData, setUserData] = useState(null);
+  const [userData, setUserData] = useState<UserData | null>(null);
 
-  const handleNavigate = (screen, data = null) => {
+  const handleNavigate = (screen: string, data: UserData | null = null) => {
     setCurrentScreen(screen);
     if (data) {
       setUserData(data);
@@ -36,7 +45,7 @@ const App = () => {
       case 'Cadastro':
         return <CadastroScreen onNavigate={handleNavigate} />;
       case 'UserDashboard':
-        return isLoggedIn ? (
+        return isLoggedIn && userData ? (
           <UserDashboard onLogout={handleLogout} userData={userData} />
         ) : (
           <HomeScreen onNavigate={handleNavigate} />
@@ -52,64 +61,7 @@ const App = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'space-between',
-    padding: 20,
-  },
-  title: {
-    fontSize: 24,
-    textAlign: 'center',
-    marginBottom: 20,
-  },
-  input: {
-    width: '100%',
-    padding: 10,
-    marginVertical: 10,
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 5,
-  },
-  error: {
-    color: 'red',
-    marginBottom: 10,
-  },
-  background: {
-    flex: 1,
-    justifyContent: 'center',
-    width: '100%',
-  },
-  image: {
-    opacity: 0.5,
-  },
-  buttonContainer: {
-    position: 'absolute',
-    bottom: 10,
-    left: 0,
-    right: 0,
-    alignItems: 'center',
-    padding: 20,
-    gap: 10,
-  },
-  header: {
-    width: '100%',
-    padding: 15,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    marginBottom: 20,
-  },
-  welcomeText: {
-    fontSize: 20,
-    color: 'white',
-    textAlign: 'center',
-    fontWeight: 'bold',
-  },
-  mainContent: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    width: '100%',
-  },
-  button: {
-    width: '80%',
-    marginVertical: 10,
+    backgroundColor: '#f5f5f5',
   },
 });
 
