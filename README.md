@@ -9,3 +9,5 @@ Este aplicativo tem como objetivo conectar jogadores e mestres de RPG de mesa, f
 * Criar e gerenciar suas próprias campanhas;
 * Participar de sessões de jogo online;
 * Interagir com outros jogadores através de chat e fóruns.
+
+Na pasta Exemploes estão as telas do aplicativo
